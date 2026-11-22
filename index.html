@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interactive Lamp Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-on="false">
+<div class="room"></div>
+<div class="ambient-glow"></div>
+<canvas id="dustCanvas"></canvas>
+
+<main class="stage">
+  <!-- LAMP -->
+  <div class="lamp-wrap" id="lamp">
+    <svg viewBox="0 0 260 420" aria-hidden="true">
+      <defs>
+        <linearGradient id="shadeGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#3a3f45"/>
+          <stop offset=".55" stop-color="#1c2024"/>
+          <stop offset="1" stop-color="#0f1113"/>
+        </linearGradient>
+        <linearGradient id="armGrad" x1="0" x2="1">
+          <stop offset="0" stop-color="#4a5056"/>
+          <stop offset=".5" stop-color="#22262a"/>
+          <stop offset="1" stop-color="#111315"/>
+        </linearGradient>
+        <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffd66b"/>
+          <stop offset=".5" stop-color="#e0a92e"/>
+          <stop offset="1" stop-color="#9c6b12"/>
+        </linearGradient>
+        <radialGradient id="baseGrad" cx=".4" cy=".3" r=".8">
+          <stop offset="0" stop-color="#3b4046"/>
+          <stop offset="1" stop-color="#121416"/>
+        </radialGradient>
+        <radialGradient id="innerOn" cx=".5" cy=".35" r=".7">
+          <stop offset="0" stop-color="#e9ffff"/>
+          <stop offset=".35" stop-color="#7ff3f6"/>
+          <stop offset="1" stop-color="#15a9b4"/>
+        </radialGradient>
+        <radialGradient id="glowGrad">
+          <stop offset="0" stop-color="#d9ffff" stop-opacity="1"/>
+          <stop offset=".4" stop-color="#19e3ea" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#19e3ea" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+        <filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+        <linearGradient id="beamGrad" gradientUnits="userSpaceOnUse" x1="150" y1="175" x2="520" y2="620">
+          <stop offset="0" stop-color="#7ff3f6" stop-opacity=".55"/>
+          <stop offset=".35" stop-color="#19c9d2" stop-opacity=".22"/>
+          <stop offset="1" stop-color="#0f8f99" stop-opacity="0"/>
+        </linearGradient>
+        <filter id="beamBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+      </defs>
+      <polygon class="beam" points="84,168 216,196 780,560 300,700" fill="url(#beamGrad)" filter="url(#beamBlur)"/>
+
+      <!-- base shadow -->
+      <ellipse cx="88" cy="392" rx="96" ry="14" fill="#000" opacity=".55" filter="url(#soft)"/>
+      <!-- base -->
+      <ellipse cx="88" cy="380" rx="78" ry="13" fill="#0c0d0f"/>
+      <ellipse cx="88" cy="376" rx="78" ry="12" fill="url(#baseGrad)" stroke="#4a5056" stroke-width="1"/>
+
+      <!-- lower arm -->
+      <line x1="88" y1="372" x2="58" y2="258" stroke="url(#armGrad)" stroke-width="9" stroke-linecap="round"/>
+      <line x1="85" y1="370" x2="56" y2="260" stroke="#5c636a" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>
+      <!-- upper arm -->
+      <line x1="58" y1="258" x2="104" y2="168" stroke="url(#armGrad)" stroke-width="6" stroke-linecap="round"/>
+
+      <!-- joints -->
+      <circle cx="88" cy="372" r="12" fill="url(#goldGrad)"/>
+      <circle cx="88" cy="372" r="5" fill="#1a1c1f"/>
+      <circle cx="58" cy="258" r="11" fill="url(#goldGrad)"/>
+      <circle cx="58" cy="258" r="4.5" fill="#1a1c1f"/>
+
+      <!-- shade -->
+      <g class="shade-g" id="shade">
+        <g transform="translate(150 150) rotate(14)">
+          <ellipse class="shade-halo" cx="0" cy="-8" rx="80" ry="62" fill="#19e3ea" opacity=".35" filter="url(#halo)"/>
+          <path d="M-72 26 C-74 -38 -38 -66 2 -66 C42 -66 74 -36 72 26 Z" fill="url(#shadeGrad)"/>
+          <path d="M-40 -48 C-24 -60 0 -63 16 -60" stroke="rgba(255,255,255,.18)" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <ellipse class="inner-shade" id="innerShade" cx="0" cy="26" rx="72" ry="18" fill="#141618"/>
+          <ellipse cx="0" cy="26" rx="72" ry="18" fill="none" stroke="url(#goldGrad)" stroke-width="3.2"/>
+          <circle class="bulb-glow" cx="0" cy="20" r="34" fill="url(#glowGrad)"/>
+          <circle class="bulb" id="bulb" cx="0" cy="20" r="11" fill="#3a4046" stroke="#565d64" stroke-width="1"/>
+        </g>
+      </g>
+
+      <!-- pull string -->
+      <line class="string-line" id="stringLine" x1="145" y1="180" x2="145" y2="268" stroke="var(--gold)" stroke-width="2"/>
+      <g class="pull" id="pull">
+        <circle class="pull-halo" id="pullHalo" cx="145" cy="278" r="20" fill="rgba(25,227,234,.35)"/>
+        <circle cx="145" cy="278" r="24" fill="transparent"/>
+        <path id="bob" d="M145 266 l-6 14 a6 6 0 0 0 12 0 Z" fill="url(#goldGrad)"/>
+      </g>
+    </svg>
+    <div class="hint">Pull string to turn on</div>
+  </div>
+
+  <!-- CARD -->
+  <section class="card" id="card">
+    <div class="form-view">
+      <h1><span class="swap" id="title">Welcome</span></h1>
+      <p class="sub"><span class="swap" id="subtitle">Sign in to continue to your account</span></p>
+
+      <div class="tabs" id="tabs" data-mode="signin">
+        <span class="tab-pill"></span>
+        <button class="tab active" data-mode="signin" type="button">Sign In</button>
+        <button class="tab" data-mode="signup" type="button">Sign Up</button>
+      </div>
+
+      <form id="form" novalidate>
+        <div class="field">
+          <div class="label-row"><label for="user">Username or Email</label></div>
+          <div class="input-box">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <input id="user" type="text" placeholder="Enter username or email" autocomplete="username" />
+          </div>
+        </div>
+        <div class="field">
+          <div class="label-row"><label for="pass">Password</label><a href="#" class="forgot" id="forgot">Forgot?</a></div>
+          <div class="input-box">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <input id="pass" type="password" placeholder="Enter password" autocomplete="current-password" />
+            <button type="button" class="eye" id="eye" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="slash" d="M3 3l18 18" style="display:none"/></svg>
+            </button>
+          </div>
+        </div>
+        <label class="remember"><input type="checkbox" id="remember" checked /><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>Remember me</label>
+
+        <button class="submit" id="submit" type="submit">
+          <span class="btn-label"><span id="btnText">Sign In</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          <span class="btn-spin"><span class="spinner"></span></span>
+          <span class="btn-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+        </button>
+      </form>
+
+      <div class="divider">OR CONTINUE WITH</div>
+      <div class="socials">
+        <button class="social" type="button" data-p="Google" aria-label="Google"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></button>
+        <button class="social" type="button" data-p="GitHub" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1.1 1.5 1.1.9 1.6 2.4 1.1 2.9.8.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10.2 10.2 0 0 0 22 12.2C22 6.6 17.5 2 12 2z"/></svg></button>
+        <button class="social" type="button" data-p="Apple" aria-label="Apple"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.5 2-3.7 2.1-3.8-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.5 1.3-.1 1.7-.8 3.2-.8s1.9.8 3.2.8c1.4 0 2.2-1.2 3-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.8-1-2.8-4.1zM14 5.1c.7-.8 1.1-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg></button>
+      </div>
+    </div>
+
+    <div class="success">
+      <div class="ok-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+      <h2 id="okTitle">Signed In Successfully</h2>
+      <p id="okText">Welcome back! Your workspace is ready.</p>
+      <button class="again" id="again" type="button">Test Again</button>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
